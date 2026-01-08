@@ -9,7 +9,7 @@ def create_tokens(db:Session, userId:int):
 
     ref_token = RefreshToken(
         token=refresh_token,
-        userId=userId,
+        user_id=userId,
     )
     db.add(ref_token)
     db.commit()

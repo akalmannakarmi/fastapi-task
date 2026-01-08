@@ -5,6 +5,7 @@ from sqlalchemy.orm import Session
 from jose import jwt, JWTError
 from datetime import datetime,timezone
 from app.db.models import User
+from app.core.config import settings
 
 oauth_schema = OAuth2PasswordBearer("/auth/login")
 
@@ -19,13 +20,13 @@ def get_current_user(
     token:str = Depends(oauth_schema),
     db: Session = Depends(get_db),
 ):
+    print("received",token)
     try:
-        payload = jwt.decode(token)
-
+        payload = jwt.decode(token,settings.SECRET_KEY,["HS256"])
         user_id:str|None = payload.get("sub")
         expire_at:datetime|None = payload.get("exp")
         if not user_id or not expire_at:
-            raise HTTPException(400,"Invalid Token")
+            raise HTTPException(400,"Invalid Token mssing values")
         
         if expire_at < datetime.now(timezone.utc):
             raise HTTPException(400,"Token has expired")
