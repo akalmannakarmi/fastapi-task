@@ -1,15 +1,17 @@
 from fastapi import APIRouter, Depends, UploadFile, File, HTTPException
-from app.schemas.customer import *
+from app.schemas.customer import TaskOut
 from app.api.deps import get_db,get_current_user
-from app.db.models import User
+from app.db.models import User, Task
+from app.tasks.customer import process_file
 from fastapi.responses import FileResponse
 from pathlib import Path
 import shutil
 from datetime import datetime,timezone
+from sqlalchemy.orm import Session
 
 router = APIRouter()
 
-TEMPLATE_FILE = "media/template.csv"
+TEMPLATE_FILE = "static/template.csv"
 UPLOAD_DIR = Path("media/customer_file/")
 UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
 
@@ -22,7 +24,7 @@ def template(_=Depends(get_current_user)):
     )
 
 @router.post("/upload",response_model=TaskOut)
-def upload(file:UploadFile = File(...), user:User=Depends(get_current_user)):
+async def upload(file:UploadFile = File(...), user:User=Depends(get_current_user), db:Session = Depends(get_db)):
     ext = Path(file.filename).suffix.lower()
     timestamp = datetime.now(timezone.utc).strftime("%Y%m%d%H%M%S")
     new_name = f"{user.id}_{timestamp}{ext}"
@@ -34,14 +36,30 @@ def upload(file:UploadFile = File(...), user:User=Depends(get_current_user)):
     with file_path.open("wb") as buffer:
         shutil.copyfileobj(file.file, buffer)
 
-    # Schedule task
-    task_id = "asd"
+    # Queue task
+    task = Task(
+        status = "queued",
+        file_name = new_name,
+        user_id = user.id,
+    )
+    db.add(task)
+    db.commit()
+    db.refresh(task)
 
-    return {"task_id":task_id,"status":"queued","file_name":new_name}
+    queued_task = await process_file.kiq(str(task.id))
+    task.queued_task_id = queued_task.task_id
+    db.commit()
 
-# @router.post("/progress",response_model=TaskOut)
-# def progress(task_id:str,user:User=Depends(get_current_user),db:Session=Depends(get_db)):
-#     pass
+    return task
+
+@router.get("/progress",response_model=TaskOut)
+def progress(task_id:int,_=Depends(get_current_user),db:Session=Depends(get_db)):
+    task = db.query(Task).get(task_id)
+
+    if not task:
+        raise HTTPException(404,"Task not found")
+    
+    return task
 
 
 # @router.post("/metics",response_model=MetricsOut)

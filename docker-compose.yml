@@ -10,7 +10,12 @@ services:
       - postgres_data:/var/lib/postgresql/data
     ports:
       - "5432:5432"
-
+    
+  redis:
+    image: redis:7
+    volumes:
+      - redis_data:/data
+  
   web:
     build: .
     container_name: web
@@ -18,6 +23,7 @@ services:
       - .env
     depends_on:
       - db
+      - redis
     ports:
       - "8000:8000"
     volumes:
@@ -25,10 +31,19 @@ services:
       - ./alembic:/app/alembic
       - ./media:/app/media
 
-  redis:
-    image: redis:7
+  worker:
+    build: .
+    container_name: worker
+    command: taskiq worker app.core.taskiq:broker --workers 4
+    env_file:
+      - .env
+    depends_on:
+      - db
+      - redis
     volumes:
-      - redis_data:/data
+      - ./app:/app/app
+      - ./alembic:/app/alembic
+      - ./media:/app/media
 
 volumes:
   postgres_data:

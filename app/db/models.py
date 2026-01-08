@@ -12,7 +12,7 @@ class User(Base):
 
     refresh_tokens = relationship("RefreshToken", back_populates="user")
     customers = relationship("Customer", back_populates="user")
-    metrics = relationship("Metrics", back_populates="user")
+    tasks = relationship("Task", back_populates="user")
 
 
 class RefreshToken(Base):
@@ -36,17 +36,13 @@ class Customer(Base):
 class Task(Base):
     __tablename__ = "task"
 
-    task_id = Column(Integer,primary_key=True,unique=True,index=True)
+    id = Column(Integer,primary_key=True,unique=True,index=True)
     status = Column(String,nullable=False)
     file_name = Column(String,nullable=False)
-
-
-class Metrics(Base):
-    __tablename__ = "metrics"
-
-    id = Column(Integer,primary_key=True,unique=True)
-    user_id = Column(Integer,ForeignKey("users.id", ondelete='CASCADE'))
+    queued_task_id = Column(String,index=True)
+    
     total_records = Column(Integer,default=0)
     failed = Column(Integer,default=0)
     succesful = Column(Integer,default=0)
-    user = relationship("User", back_populates="metrics")
+    user_id = Column(Integer,ForeignKey("users.id", ondelete='CASCADE'))
+    user = relationship("User", back_populates="tasks")
