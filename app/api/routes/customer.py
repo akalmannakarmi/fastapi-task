@@ -1,5 +1,5 @@
 from fastapi import APIRouter, Depends, UploadFile, File, HTTPException
-from app.schemas.customer import TaskOut
+from app.schemas.customer import TaskOut, MetricsOut
 from app.api.deps import get_db,get_current_user
 from app.db.models import User, Task
 from app.tasks.customer import process_file
@@ -53,17 +53,28 @@ async def upload(file:UploadFile = File(...), user:User=Depends(get_current_user
     return task
 
 @router.get("/progress",response_model=TaskOut)
-def progress(task_id:int,_=Depends(get_current_user),db:Session=Depends(get_db)):
+def progress(task_id:int,user:User=Depends(get_current_user),db:Session=Depends(get_db)):
     task = db.query(Task).get(task_id)
 
     if not task:
         raise HTTPException(404,"Task not found")
+    elif task.user_id != user.id:
+        raise HTTPException(403,"Access Denied")
     
     return task
 
 
-# @router.post("/metics",response_model=MetricsOut)
-# def metrics(user:User=Depends(get_current_user),db:Session=Depends(get_db)):
-#     pass
+@router.get("/metrics",response_model=MetricsOut)
+def metrics(task_id:int,user:User=Depends(get_current_user),db:Session=Depends(get_db)):
+    task = db.query(Task).get(task_id)
+
+    if not task:
+        raise HTTPException(404,"Task not found")
+    elif task.user_id != user.id:
+        raise HTTPException(403,"Access Denied")
+    elif task.status not in ["completed","failed"]:
+        raise HTTPException(400,"Task hasnt processed yet")
+    
+    return task
 
 

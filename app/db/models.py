@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, ForeignKey
+from sqlalchemy import Column, Integer, String, ForeignKey, UniqueConstraint
 from sqlalchemy.orm import relationship
 from app.db.database import Base
 
@@ -32,6 +32,9 @@ class Customer(Base):
     user_id = Column(Integer,ForeignKey("users.id", ondelete='CASCADE'))
     user = relationship("User", back_populates="customers")
 
+    __table_args__ = (
+        UniqueConstraint("user_id", "email", name="uq_user_email"),
+    )
 
 class Task(Base):
     __tablename__ = "task"
