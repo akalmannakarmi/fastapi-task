@@ -3,11 +3,13 @@ from app.core.taskiq import broker
 from app.db.database import SessionLocal
 from app.db.models import Task
 from app.utils.customer import validate_file_columns, stream_and_insert
+from time import time
 import asyncio
 
 @broker.task
 async def process_file(task_id: int) -> None:
-    print("Processing task {task_id} ...")
+    print(f"Processing task {task_id} ...")
+    start_time = time()
     for i in range(4):
         if i:
             print(f"Retrying task {task_id} ... ({i})")
@@ -15,7 +17,7 @@ async def process_file(task_id: int) -> None:
             with SessionLocal() as db:
                 task = db.get(Task, task_id)
                 if not task:
-                    return
+                    raise Exception("Task Not Found")
 
                 task.status = "processing"
                 db.commit()
@@ -33,6 +35,9 @@ async def process_file(task_id: int) -> None:
                 task.succesful = succesful
                 db.commit()
             
+            end_time = time()
+            duration = round(end_time - start_time, 2)
+            print(f"Task {task_id} completed in {duration} seconds.")
             return
         except Exception as e:
             await asyncio.sleep(5)
@@ -42,3 +47,4 @@ async def process_file(task_id: int) -> None:
         task = db.get(Task, task_id)
         task.status = "failed"
         db.commit()
+        print(f"Task {task_id} failed")
