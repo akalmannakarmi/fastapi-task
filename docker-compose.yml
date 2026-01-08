@@ -20,6 +20,10 @@ services:
       - db
     ports:
       - "8000:8000"
+    volumes:
+      - ./app:/app/app
+      - ./alembic:/app/alembic
+      - ./media:/app/media
 
   redis:
     image: redis:7
