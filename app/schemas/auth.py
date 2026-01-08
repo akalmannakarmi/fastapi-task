@@ -22,3 +22,9 @@ class TokenOut(BaseModel):
     access_token:str
     refresh_token:str
     token_type:str
+
+class UserLogout(BaseModel):
+    refresh_token:str
+
+class UserRefresh(BaseModel):
+    refresh_token:str
