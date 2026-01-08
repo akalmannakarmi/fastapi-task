@@ -36,8 +36,9 @@ class Customer(Base):
 class Task(Base):
     __tablename__ = "task"
 
-    taskId = Column(Integer,primary_key=True,unique=True,index=True)
+    task_id = Column(Integer,primary_key=True,unique=True,index=True)
     status = Column(String,nullable=False)
+    file_name = Column(String,nullable=False)
 
 
 class Metrics(Base):
