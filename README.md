@@ -34,7 +34,10 @@ customer upload processing.
 
 ## How to Run
 1. Copy environment variables
-   cp example.env .env
-
+```
+cp example.env .env
+```
 2. Start the application
-   docker compose up --build
+```
+docker compose up --build
+```
