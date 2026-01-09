@@ -8,7 +8,8 @@ ENV PYTHONUNBUFFERED=1
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-COPY ./app /app/app
-COPY ./alembic /app/alembic
 COPY ./alembic.ini /app/
 COPY ./entrypoint.sh /app/
+COPY ./static /app/static
+COPY ./alembic /app/alembic
+COPY ./app /app/app
