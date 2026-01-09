@@ -41,8 +41,8 @@ async def process_file(task_id: int) -> None:
             print(f"Task {task_id} completed in {duration} seconds.")
             return
         except Exception as e:
+            print("Error:",e)
             await asyncio.sleep(5)
-            e.with_traceback()
 
     with SessionLocal() as db:
         task = db.get(Task, task_id)
