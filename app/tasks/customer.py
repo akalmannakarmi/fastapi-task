@@ -6,6 +6,7 @@ from app.utils.customer import validate_file_columns, stream_and_insert
 from time import time
 import asyncio
 
+
 @broker.task
 async def process_file(task_id: int) -> None:
     print(f"Processing task {task_id} ...")
@@ -25,7 +26,7 @@ async def process_file(task_id: int) -> None:
                 file_path = Path("media/customer_file/") / task.file_name
 
             validate_file_columns(file_path)
-            total,failed,succesful = stream_and_insert(file_path, task.user_id)
+            total, failed, succesful = stream_and_insert(file_path, task.user_id)
 
             with SessionLocal() as db:
                 task = db.get(Task, task_id)
@@ -34,7 +35,7 @@ async def process_file(task_id: int) -> None:
                 task.failed = failed
                 task.succesful = succesful
                 db.commit()
-            
+
             end_time = time()
             duration = round(end_time - start_time, 2)
             print(f"Task {task_id} completed in {duration} seconds.")
@@ -42,7 +43,7 @@ async def process_file(task_id: int) -> None:
         except Exception as e:
             await asyncio.sleep(5)
             e.with_traceback()
-    
+
     with SessionLocal() as db:
         task = db.get(Task, task_id)
         task.status = "failed"

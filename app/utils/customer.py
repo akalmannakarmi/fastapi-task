@@ -7,6 +7,7 @@ import csv
 
 REQUIRED_COLUMNS = {"name", "email", "amount"}
 
+
 def validate_file_columns(path: Path) -> None:
     ext = path.suffix.lower()
     if ext == ".csv":
@@ -18,16 +19,19 @@ def validate_file_columns(path: Path) -> None:
 
     validate_header(header)
 
+
 def get_csv_header(path: Path) -> list[str]:
     with path.open(newline="", encoding="utf-8") as f:
         reader = csv.DictReader(f)
         return reader.fieldnames or []
+
 
 def get_excel_header(path: Path) -> list[str]:
     wb = load_workbook(path, read_only=True)
     ws = wb.active
     rows = ws.iter_rows(values_only=True)
     return list(next(rows, []))
+
 
 def validate_header(header: list[str] | tuple[str, ...]) -> None:
     if not header:
@@ -40,7 +44,7 @@ def validate_header(header: list[str] | tuple[str, ...]) -> None:
         raise ValueError(f"Missing required columns: {', '.join(missing)}")
 
 
-def stream_and_insert(path: Path, user_id: int) -> Tuple[int,int,int]:
+def stream_and_insert(path: Path, user_id: int) -> Tuple[int, int, int]:
     ext = path.suffix.lower()
 
     if ext == ".csv":
@@ -49,6 +53,7 @@ def stream_and_insert(path: Path, user_id: int) -> Tuple[int,int,int]:
         return stream_excel(path, user_id)
     else:
         raise ValueError("Unsupported file type")
+
 
 def stream_csv(path: Path, user_id: int) -> Tuple[int, int, int]:
     total = failed = success = 0
@@ -75,6 +80,7 @@ def stream_csv(path: Path, user_id: int) -> Tuple[int, int, int]:
                 failed += 1
 
     return total, failed, success
+
 
 def stream_excel(path: Path, user_id: int) -> Tuple[int, int, int]:
     total = failed = success = 0

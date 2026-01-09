@@ -6,4 +6,4 @@ broker = RedisStreamBroker(
 )
 
 
-from app.tasks.customer import *
+from app.tasks.customer import process_file  # noqa
