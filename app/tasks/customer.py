@@ -2,7 +2,7 @@ from pathlib import Path
 from app.core.taskiq import broker
 from app.db.database import SessionLocal
 from app.db.models import Task
-from app.utils.customer import validate_file_columns, stream_and_insert
+from app.utils.customer import validate_file_columns, batch_and_insert
 from time import time
 import asyncio
 
@@ -26,7 +26,7 @@ async def process_file(task_id: int) -> None:
                 file_path = Path("media/customer_file/") / task.file_name
 
             validate_file_columns(file_path)
-            total, failed, succesful = stream_and_insert(file_path, task.user_id)
+            total, failed, succesful = batch_and_insert(file_path, task.user_id)
 
             with SessionLocal() as db:
                 task = db.get(Task, task_id)
